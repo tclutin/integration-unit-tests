@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ExceptionMiddleware {
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(StudentNotFoundException.class)
     public ResponseEntity<String> handleStudentNotFoundException(StudentNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }

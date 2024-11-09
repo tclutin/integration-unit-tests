@@ -1,6 +1,7 @@
 package com.example.demo.core;
 
 import com.example.demo.exception.StudentNotFoundException;
+import com.example.demo.integration.BookingClient;
 import com.example.demo.integration.ChuckClient;
 import com.example.demo.model.ChuckResponse;
 import com.example.demo.model.Gender;
@@ -28,6 +29,9 @@ import static org.mockito.Mockito.*;
 class StudentServiceTest {
     @Mock
     private ChuckClient chuckClient;
+
+    @Mock
+    private BookingClient bookingClient;
 
     @Mock
     private StudentRepository studentRepository;
@@ -77,5 +81,37 @@ class StudentServiceTest {
         assertEquals("Студент с id = " + 99999L + " не был найден в базе данных", exception.getMessage());
 
         verify(studentRepository, times(1)).findById(99999L );
+    }
+
+    @Test
+    void createStudentWithCorrectId() {
+        Student student = new Student("John", "john@mail.ru", Gender.MALE);
+        student.setId(1L);
+
+        when(studentRepository.selectExistsEmail(anyString())).thenReturn(false);
+        when(chuckClient.getJoke()).thenReturn(new ChuckResponse(""));
+        when(bookingClient.createBookingAndGetId(any())).thenReturn(Optional.of(1));
+
+        studentService.addStudent(student);
+
+        assertEquals(1, student.getBookingId());
+
+        verify(studentRepository, times(1)).save(student);
+    }
+
+    @Test
+    void createStudentWithIncorrectId() {
+        Student student = new Student("John", "john@mail.ru", Gender.MALE);
+        student.setId(1L);
+
+        when(studentRepository.selectExistsEmail(anyString())).thenReturn(false);
+        when(chuckClient.getJoke()).thenReturn(new ChuckResponse(""));
+        when(bookingClient.createBookingAndGetId(any())).thenReturn(Optional.empty());
+
+        studentService.addStudent(student);
+
+        assertEquals(-1, student.getBookingId());
+
+        verify(studentRepository, times(1)).save(student);
     }
 }
